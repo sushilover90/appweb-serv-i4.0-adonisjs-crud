@@ -10,7 +10,7 @@ class UserController {
 
     let user = new User();
 
-    user.username = data.email;
+    user.username = data.email.toLowerCase();
     user.email = user.username;
     user.password = data.password;
 
@@ -19,7 +19,7 @@ class UserController {
       return response.status(200).json({
         status: 'OK',
         message: 'El usuario ha sido registrado exitosamente.'
-      })
+      });
     }
 
     // here goes the type of error
@@ -37,7 +37,14 @@ class UserController {
 
     const { username , password } = await request.all();
 
-    return auth.withRefreshToken().attempt(username, password);
+    const _auth_info = await auth.withRefreshToken().attempt(username, password);
+
+    if(_auth_info !== null)
+    {
+      return {user: username, auth: _auth_info}
+    }
+
+    return _auth_info;
 
   } // async login() end
 
@@ -45,7 +52,7 @@ class UserController {
 
     const data = await request.all();
 
-    let user = await User.find(data.id);
+    let user = await User.findBy('email',data.username);
 
     // unchaged user properties previous update
     const _user = {
@@ -57,12 +64,18 @@ class UserController {
     }
 
     // assigning the new values of the user properties to update
-    user.username = data.email;
+    user.username = data.new_email.toLowerCase();
     user.email = user.username;
+
+    if(data.field2 !== '' || data.field2 !== null || true)
+    {
+      user.password = data.field2;
+    }
 
     // try to update the user
     if(user.save())
     {
+
       return response.status(200).json(
         {
           before:_user,
