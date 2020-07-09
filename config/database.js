@@ -82,8 +82,8 @@ module.exports = {
     debug: Env.get('DB_DEBUG', false)
   }
 }
-
 /*
+
   connection_2: Env.get('DB_CONNECTION_2','mongodb'),
 
   mongodb:{
@@ -109,4 +109,4 @@ module.exports = {
     }
   },
 
- */
+*/
