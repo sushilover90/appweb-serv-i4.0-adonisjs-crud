@@ -30,12 +30,16 @@ Route.post('empresa/register','EmpresaController.register').middleware(['auth'])
 Route.get('empresa/get','EmpresaController.get').middleware(['auth']);
 Route.patch('empresa/update','EmpresaController.update').middleware(['auth']);
 Route.delete('empresa/delete','EmpresaController.delete').middleware(['auth']);
+
+
 Route.get('empresa/getmongo','EmpresaController.getMongo').middleware(['auth']);
 Route.post('empresa/registermongo','EmpresaController.registerMongo').middleware(['auth']);
 
 /* Product Routes */
 Route.post('producto/get','EmpresaController.getProducts').middleware(['auth']);
 Route.post('producto/register','EmpresaController.registerProduct').middleware(['auth']);
+Route.patch('producto/update','EmpresaController.updateProduct').middleware(['auth']);
+Route.delete('producto/delete','EmpresaController.deleteProduct').middleware(['auth']);
 
 /* return data received for testing */
 Route.post('test/return',({request})=>{

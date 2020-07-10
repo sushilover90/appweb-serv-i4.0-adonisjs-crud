@@ -13,6 +13,7 @@ let EmpresaSchema =  new Schema({
 
 let EmpresaMongo = mongoose.model('empresas',EmpresaSchema);
 
+
 let ProductSchema = new Schema({
   _id: Schema.Types.ObjectId,
   name: String,
@@ -115,6 +116,8 @@ class EmpresaController {
     if(empresa.delete())
     {
 
+      this.deleteMongo(data.id);
+
       return response.status(200).json({
         status:'STATUS',
         message:'Se borró la empresa correctamente.'
@@ -165,6 +168,31 @@ class EmpresaController {
 
   }
 
+  async registerMongo(empresa_id){
+
+    await this.mongoDBConnect()
+
+    let empresa = await new EmpresaMongo(
+      {
+        empresa_id:empresa_id,
+        _id: new mongoose.Types.ObjectId()
+      }
+    );
+
+    await empresa.save();
+
+    return empresa;
+
+  }
+
+  async deleteMongo(empresa_id){
+
+    await this.mongoDBConnect();
+
+    return await EmpresaMongo.findOneAndRemove({empresa_id:empresa_id});
+
+  }
+
   async getMongo(empresa_id=null){
 
     await this.mongoDBConnect();
@@ -182,6 +210,8 @@ class EmpresaController {
   async getProducts({request,response}){
 
     const data = await request.all();
+
+    await this.mongoDBConnect();
 
     const empresa = await this.getMongo(data.empresa_id);
 
@@ -212,31 +242,83 @@ class EmpresaController {
 
   }
 
-  async registerMongo(empresa_id){
+  async updateProduct({request, response}) {
 
-    await this.mongoDBConnect()
+    const data = await request.all();
 
-    let empresa = await new EmpresaMongo(
-      {
-        empresa_id:empresa_id,
-        _id: new mongoose.Types.ObjectId()
-      }
-    );
-
-    await empresa.save();
-
-    return empresa;
-
-  }
-
-  async deleteMongo(empresa_id){
+    //const _product_id = `ObjectId("${data.product_id}")`;
 
     await this.mongoDBConnect();
 
-    return await EmpresaMongo.findOneAndRemove(empresa_id);
+    // {empresa_id:1,"products._id":ObjectId("5f081ac18c25cfdd7eb8661e")},
+    // {$set:{"products.$.price":200,"products.$.name":"perro"}}
+
+    // product_id: "ObjectId("5f081ac18c25cfdd7eb8661e")"
+    // const empresita = await EmpresaMongo.find({'products._id':data.product_id});
+    // const empresita = await EmpresaMongo.find({'products._id':"5f081ac18c25cfdd7eb8661e"});
+    const empresita = await EmpresaMongo.find({'products._id':'ObjectId("5f081ac18c25cfdd7eb8661e")'});
+    // const empresita = await EmpresaMongo.find({'products._id':data.product_id});
+    // const empresita = await EmpresaMongo.find({empresa_id:data.empresa_id});
+
+    return response.json({
+      'product_id':data.product_id,
+      'empresa':empresita
+    });
+
+    return await EmpresaMongo.update(
+      {empresa_id:data.empresa_id, "products._id":data.product_id},
+      {$set:
+          {
+            "products.$.price":data.product_price,
+            "products.$.name":data.product_name.toUpperCase()
+          }
+      }
+    )
+
+/*
+    return await EmpresaMongo.update(
+      {empresa_id:data.empresa_id,'products.productId':_product_id},
+      {'$set':
+          {
+            'products.$.price':data.price,
+            'products.$.name':data.product_name.toUpperCase()
+          }
+      },
+      {arrayFilters:
+          [
+            { 'productId' : _product_id }
+          ]
+      }
+    );
+*/
+
+
+/*
+    return await EmpresaMongo.update(
+      {empresa_id:data.empresa_id,'products.productId':_product_id},
+      {'$set':
+          {
+            'products.$.price':data.price,
+            'products.$.name':data.product_name.toUpperCase()
+          }
+      },
+      { arrayFilters: [ {'products.productId':_product_id} ]}
+    );
+*/
+
+    const products = await EmpresaMongo.find({empresa_id:data.empresa_id},{products: 1});
+
+    return response.status(200).json(products);
 
   }
 
+  async deleteProduct({request,response}){
+
+    const data = await request.all();
+
+    await this.mongoDBConnect();
+
+  }
 
 }
 
