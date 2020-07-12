@@ -256,16 +256,18 @@ class EmpresaController {
     // product_id: "ObjectId("5f081ac18c25cfdd7eb8661e")"
     // const empresita = await EmpresaMongo.find({'products._id':data.product_id});
     // const empresita = await EmpresaMongo.find({'products._id':"5f081ac18c25cfdd7eb8661e"});
-    const empresita = await EmpresaMongo.find({'products._id':'ObjectId("5f081ac18c25cfdd7eb8661e")'});
+    // const empresita = await EmpresaMongo.find({'products._id':'ObjectId("5f081ac18c25cfdd7eb8661e")'});
     // const empresita = await EmpresaMongo.find({'products._id':data.product_id});
     // const empresita = await EmpresaMongo.find({empresa_id:data.empresa_id});
 
+/*
     return response.json({
       'product_id':data.product_id,
       'empresa':empresita
     });
+*/
 
-    return await EmpresaMongo.update(
+    return await EmpresaMongo.updateOne(
       {empresa_id:data.empresa_id, "products._id":data.product_id},
       {$set:
           {
