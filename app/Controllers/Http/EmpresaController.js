@@ -2,6 +2,7 @@
 const Empresa = use('App/Models/Empresa')
 
 const mongoose = require('mongoose');
+const { validate } = use('Validator');
 
 let Schema =  mongoose.Schema;
 
@@ -35,6 +36,18 @@ class EmpresaController {
   {
 
     const data = await request.all();
+
+    const validation = await validate(data,{
+      name: 'required|min:3|max:30',
+      address: 'required|min:3|max:300'
+    });
+
+    if(validation.fails())
+    {
+
+      return response.status(400).json(validation.messages());
+
+    }
 
     let empresa = await Empresa.create({
       name : data.name.toUpperCase(),
@@ -246,71 +259,17 @@ class EmpresaController {
 
     const data = await request.all();
 
-    //const _product_id = `ObjectId("${data.product_id}")`;
-
     await this.mongoDBConnect();
 
-    // {empresa_id:1,"products._id":ObjectId("5f081ac18c25cfdd7eb8661e")},
-    // {$set:{"products.$.price":200,"products.$.name":"perro"}}
-
-    // product_id: "ObjectId("5f081ac18c25cfdd7eb8661e")"
-    // const empresita = await EmpresaMongo.find({'products._id':data.product_id});
-    // const empresita = await EmpresaMongo.find({'products._id':"5f081ac18c25cfdd7eb8661e"});
-    // const empresita = await EmpresaMongo.find({'products._id':'ObjectId("5f081ac18c25cfdd7eb8661e")'});
-    // const empresita = await EmpresaMongo.find({'products._id':data.product_id});
-    // const empresita = await EmpresaMongo.find({empresa_id:data.empresa_id});
-
-/*
-    return response.json({
-      'product_id':data.product_id,
-      'empresa':empresita
-    });
-*/
-
-    return await EmpresaMongo.updateOne(
-      {empresa_id:data.empresa_id, "products._id":data.product_id},
+    return await EmpresaMongo.update(
+      {"empresa_id":data.empresa_id, "products._id":mongoose.Types.ObjectId(data.product_id)},
       {$set:
           {
-            "products.$.price":data.product_price,
-            "products.$.name":data.product_name.toUpperCase()
+            "products.$.name":data.product_name.toUpperCase(),
+            "products.$.price":data.product_price
           }
       }
     )
-
-/*
-    return await EmpresaMongo.update(
-      {empresa_id:data.empresa_id,'products.productId':_product_id},
-      {'$set':
-          {
-            'products.$.price':data.price,
-            'products.$.name':data.product_name.toUpperCase()
-          }
-      },
-      {arrayFilters:
-          [
-            { 'productId' : _product_id }
-          ]
-      }
-    );
-*/
-
-
-/*
-    return await EmpresaMongo.update(
-      {empresa_id:data.empresa_id,'products.productId':_product_id},
-      {'$set':
-          {
-            'products.$.price':data.price,
-            'products.$.name':data.product_name.toUpperCase()
-          }
-      },
-      { arrayFilters: [ {'products.productId':_product_id} ]}
-    );
-*/
-
-    const products = await EmpresaMongo.find({empresa_id:data.empresa_id},{products: 1});
-
-    return response.status(200).json(products);
 
   }
 
@@ -320,7 +279,19 @@ class EmpresaController {
 
     await this.mongoDBConnect();
 
+    return await EmpresaMongo.update(
+      {empresa_id:data.empresa_id},
+      {
+        $pull: { products : {
+            _id: mongoose.Types.ObjectId(data.product_id)
+          }
+        }
+      }
+    )
+
   }
+  // navigation drawer
+  // login (como robosam)
 
 }
 
